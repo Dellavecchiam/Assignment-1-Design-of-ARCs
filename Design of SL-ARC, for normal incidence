@@ -1,0 +1,146 @@
+close all
+
+
+% | air | arc | Si |
+
+lambda = 500e-9;
+n_air = 1;    % reflect index of air
+n_Si = 4.2992;   % reflect index of silicon
+n_arc = sqrt(n_air*n_Si);  % in the theoretical case 
+
+n_SiO2 = 1.4623;
+n_Al2O3 = 1.7742;
+n_Si3N4 = 2.0344;
+n_Zns = 2.4199;
+n_TiO2 = 2.7114;
+
+
+Z0 = 377;
+Z_air = Z0/n_air;
+Z_Si = Z0/n_Si;
+Z_arc = sqrt(Z_air*Z_Si);  % in the theoretical case 
+
+Z_SiO2 =  Z0/n_SiO2;
+Z_Al2O3 =  Z0/n_Al2O3;
+Z_Si3N4 =  Z0/n_Si3N4;
+Z_ZnS =  Z0/n_Zns;
+Z_TiO2 =  Z0/n_TiO2;
+
+d_arc = lambda/n_arc/4; % fixed thickness theoretical case
+
+d_SiO2 = lambda/n_SiO2/4; % fixed thickness theoretical case
+d_Al2O3 = lambda/n_Al2O3/4;
+d_Si3N4 = lambda/n_Si3N4/4;
+d_ZnS = lambda/n_Zns/4;
+d_TiO2 = lambda/n_TiO2/4;
+
+
+lambda_0 = linspace(400e-9,1100e-9,1000);
+kz_arc = 2*pi*n_arc./lambda_0; % caso ideale
+kz_SiO2 = 2*pi*n_SiO2./lambda_0; % caso reale
+kz_Al2O3 = 2*pi*n_Al2O3./lambda_0;
+kz_Si3N4 = 2*pi*n_Si3N4./lambda_0;
+kz_ZnS = 2*pi*n_Zns./lambda_0;
+kz_TiO2 = 2*pi*n_TiO2./lambda_0;
+
+
+% : between Si and ARC
+gammaB_arc = (Z_Si-Z_arc)/(Z_Si+Z_arc);
+gammaAp_arc = gammaB_arc*exp(-4j*d_arc*pi*n_arc./lambda_0); 
+ZA_arc = Z_arc*(1+gammaAp_arc)./(1-gammaAp_arc);
+
+gammaAm_arc = (ZA_arc-Z_air)./(ZA_arc+Z_air);
+
+R_arc = abs(gammaAm_arc).^2;
+
+% SiO2 
+gammaB_SiO2 = (Z_Si-Z_SiO2)/(Z_Si+Z_SiO2);
+gammaAp_SiO2 = gammaB_SiO2*exp(-4j*d_SiO2*pi*n_SiO2./lambda_0); 
+ZA_SiO2 = Z_SiO2*(1+gammaAp_SiO2)./(1-gammaAp_SiO2);
+
+gammaAm_SiO2 = (ZA_SiO2-Z_air)./(ZA_SiO2+Z_air);
+
+R_SiO2 = abs(gammaAm_SiO2).^2;
+
+%  Al2O3
+gammaB_Al2O3 = (Z_Si-Z_Al2O3)/(Z_Si+Z_Al2O3);
+gammaAp_Al2O3 = gammaB_Al2O3*exp(-4j*d_Al2O3*pi*n_Al2O3./lambda_0); 
+ZA_Al2O3 = Z_Al2O3*(1+gammaAp_Al2O3)./(1-gammaAp_Al2O3);
+
+gammaAm_Al2O3 = (ZA_Al2O3-Z_air)./(ZA_Al2O3+Z_air);
+
+R_Al2O3 = abs(gammaAm_Al2O3).^2;
+
+% Si3N4
+gammaB_Si3N4 = (Z_Si-Z_Si3N4)/(Z_Si+Z_Si3N4);
+gammaAp_Si3N4 = gammaB_Si3N4*exp(-4j*d_Si3N4*pi*n_Si3N4./lambda_0); 
+ZA_Si3N4 = Z_Si3N4*(1+gammaAp_Si3N4)./(1-gammaAp_Si3N4);
+
+gammaAm_Si3N4 = (ZA_Si3N4-Z_air)./(ZA_Si3N4+Z_air);
+
+R_Si3N4 = abs(gammaAm_Si3N4).^2;
+% ZnS
+gammaB_ZnS = (Z_Si-Z_ZnS)/(Z_Si+Z_ZnS);
+gammaAp_ZnS = gammaB_ZnS*exp(-4j*d_Si3N4*pi*n_Zns./lambda_0); 
+ZA_ZnS = Z_ZnS*(1+gammaAp_ZnS)./(1-gammaAp_ZnS);
+
+gammaAm_ZnS = (ZA_ZnS-Z_air)./(ZA_ZnS+Z_air);
+
+R_ZnS = abs(gammaAm_ZnS).^2;
+
+% TiO2
+gammaB_TiO2 = (Z_Si-Z_TiO2)/(Z_Si+Z_TiO2);
+gammaAp_TiO2 = gammaB_TiO2*exp(-4j*d_TiO2*pi*n_TiO2./lambda_0); 
+ZA_TiO2 = Z_TiO2*(1+gammaAp_TiO2)./(1-gammaAp_TiO2);
+
+gammaAm_TiO2 = (ZA_TiO2-Z_air)./(ZA_TiO2+Z_air);
+
+R_TiO2 = abs(gammaAm_TiO2).^2;
+
+% plot
+figure(1)
+hh = plot(lambda_0, R_arc,'r --');
+set(hh, 'linewidth', 2)
+
+set(gca, 'fontsize', 14)
+xlabel('lambda [nm]', 'fontsize', 16)
+ylabel('R [%]','fontsize', 16)
+hold on
+% SiO2
+hh = plot(lambda_0, R_SiO2,'b');
+set(hh, 'linewidth', 2)
+
+set(gca, 'fontsize', 14)
+xlabel('lambda [nm]', 'fontsize', 16)
+ylabel('R [%]', 'fontsize', 16)
+% Al203
+hh = plot(lambda_0, R_Al2O3,'g');
+set(hh, 'linewidth', 2)
+
+set(gca, 'fontsize', 14)
+xlabel('lambda [nm]', 'fontsize', 16)
+ylabel('R [%]', 'fontsize', 16)
+% Si3N4
+hh = plot(lambda_0, R_Si3N4,'y');
+set(hh, 'linewidth', 2)
+
+set(gca, 'fontsize', 14)
+xlabel('lambda [nm]', 'fontsize', 16)
+ylabel('R [%]', 'fontsize', 16)
+% ZnS
+hh = plot(lambda_0, R_ZnS,'m');
+set(hh, 'linewidth', 2)
+
+set(gca, 'fontsize', 14)
+xlabel('lambda [nm]', 'fontsize', 16)
+ylabel('R [%]', 'fontsize', 16)
+%TiO2
+hh = plot(lambda_0, R_TiO2,'k');
+set(hh, 'linewidth', 2)
+
+set(gca, 'fontsize', 14)
+xlabel('lambda [nm]', 'fontsize', 16)
+ylabel('R [%]', 'fontsize', 16)
+legend('ideal arc','SiO2','Al2O3','Si3N4','ZnS','TiO2')
+hold off
+grid
