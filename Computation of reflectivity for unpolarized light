@@ -1,0 +1,24 @@
+close all
+clc
+
+% | air | Si |
+
+% reflectivity at normal incidence with phi = 90°
+n_air = 1;    % reflect index of air
+n_Si = 4.2992;   % reflect index of silicon
+
+R_90 = ((n_air-n_Si)/(n_air+n_Si))^2;
+
+% reflectivity at normal incidence with phi = 30°
+theta = 30/(360*2*pi); % radiant
+N1 = (n_air*sqrt(((n_Si^2)-((n_air^2)*(sin(theta)^2)))-((n_Si^2)*cos(theta))));
+D1 = (n_air*sqrt(((n_Si^2)-((n_air^2)*(sin(theta)^2)))+((n_Si^2)*cos(theta))));
+gamma_p = N1/D1;
+R_p = abs(gamma_p)^2;
+
+N2 = (((n_air*cos(theta))-sqrt((n_Si^2)-((n_air*sin(theta))^2))));
+D2 = (((n_air*cos(theta))+sqrt((n_Si^2)-((n_air*sin(theta))^2))));
+gamma_s = N2/D2;
+R_s = abs(gamma_s)^2;
+
+R_30 = (R_p+R_s)/2;
