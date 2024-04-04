@@ -1,0 +1,61 @@
+close all
+clc
+
+% |  air  |   arc1   |   TiO2   |  Si  |
+% | n_air |  n_arc1  |  n_TiO2  | n_Si |
+
+lambda_0 = 500e-9;
+lambda = linspace(200e-9,1100e-9,2000);
+
+n_air = 1;
+n_TiO2 = 2.7114;
+n_Si = 4.2992; 
+n_arc1 = n_TiO2*(sqrt(n_air/n_Si)); % n_arc1 = 1.3077 ideal case
+n_MgF2 = 1.3798; % the closest value to the ideal one 
+
+% thickness of the layer
+
+d_arc1 = lambda_0/(4*n_arc1);
+d_TiO2 = lambda_0/(4*n_TiO2);
+d_MgF2 = lambda_0/(4*n_MgF2);
+
+% transmission line features
+k_arc1 = 2*pi*n_arc1./lambda;
+k_TiO2 = 2*pi*n_TiO2./lambda;
+k_MgF2 = 2*pi*n_MgF2./lambda;
+
+Z0 = 377;
+Z_air = Z0/n_air;
+Z_Si = Z0/n_Si;
+Z_arc1 = Z0/n_arc1;
+Z_TiO2 = Z0/n_TiO2;
+Z_MgF2 = Z0/n_MgF2;
+
+% from Si to TiO2
+gammaC = (Z_Si - Z_TiO2)/(Z_Si + Z_TiO2);
+gammaBp = gammaC*exp(-2j*k_TiO2*d_TiO2);
+ZB = Z_TiO2*(1 + gammaBp)./(1 - gammaBp);
+
+% for arc1 so ideal case with n_arc1
+gammaBm_arc1 = (ZB - Z_arc1)./(ZB + Z_arc1);
+gammaAp_arc1 = gammaBm_arc1.*exp(-2j*k_arc1*d_arc1);
+ZA_arc1 = Z_arc1*(1 + gammaAp_arc1)./(1 - gammaAp_arc1);
+gammaAm_arc1 = (ZA_arc1 - Z_air)./(ZA_arc1 + Z_air);
+% reflectivity
+R_in_IDEAL_QWOT_DL = abs(gammaAm_arc1).^2;
+
+% for MgF2 with the closest value to the ideal one so n_MgF2 
+gammaBm_MgF2 = (ZB - Z_MgF2)./(ZB + Z_MgF2);
+gammaAp_MgF2 = gammaBm_MgF2.*exp(-2j*k_MgF2*d_MgF2);
+ZA_MgF2 = Z_MgF2*(1 + gammaAp_MgF2)./(1 - gammaAp_MgF2);
+gammaAm_MgF2 = (ZA_MgF2 - Z_air)./(ZA_MgF2 + Z_air);
+% reflectivity
+R_in_MgF2_QWOT_DL = abs(gammaAm_MgF2).^2;
+
+% DOUBLE LAYER ARC (QWOT) - plots
+figure(1)
+plot(lambda, R_in_IDEAL_QWOT_DL,'--k', lambda, R_in_MgF2_QWOT_DL,'b')
+xlabel('lambda = (400 - 1100) [nm]')
+ylabel('R')
+xline(lambda_0,'r')
+legend('R IDEAL','R NaF','lambda_0 = 500 nm')
