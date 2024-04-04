@@ -1,0 +1,119 @@
+close all
+clear all
+clc
+
+
+% |  air  |   arc1   |   TiO2   |  Si  |
+% | n_air |  n_arc1  |  n_TiO2  | n_Si |
+
+lambda_0 = 500e-9;
+lambda = linspace(200e-9,1100e-9,2000);
+
+n_air = 1; % Air
+n_TiO2 = 2.7114; % Titania
+n_Si = 4.2992; % Silicon
+n_SiO2 = 1.4623; % Silica
+
+% thickness of the layer
+
+d_TiO2 = lambda_0/(4*n_TiO2);
+d_SiO2 = lambda_0/(4*n_SiO2);
+
+% transmission line features
+k_TiO2 = 2*pi*n_TiO2./lambda;
+k_SiO2 = 2*pi*n_SiO2./lambda;
+
+Z0 = 377;
+Z_air = Z0/n_air;
+Z_Si = Z0/n_Si;
+Z_TiO2 = Z0/n_TiO2;
+Z_SiO2 = Z0/n_SiO2;
+
+% computation of the optimal phi_1 and phi_2
+
+phi_1 = linspace(0,pi,3500);
+phi_2 = linspace(0,pi,3500);
+matrix_Z_real=zeros(length(phi_1),length(phi_2));
+matrix_Z_imag=zeros(length(phi_1),length(phi_2));
+
+for index_1 = 1:length(phi_1)
+    for index_2 = 1:length(phi_2)
+        phi_1_us = phi_1(index_1);
+        phi_2_us = phi_2(index_2);
+        gammaE = (Z_Si - Z_TiO2)/(Z_Si + Z_TiO2);
+        %gammaDp = gammaE*exp(-2j*phi_2_us);
+        gammaDp = gammaE*exp(-2j*phi_2_us);
+        ZD = Z_TiO2*(1 + gammaDp)/(1 - gammaDp);
+        gammaDm = (ZD - Z_SiO2)/(ZD + Z_SiO2);
+        %gammaCp = gammaD*exp(-2j*phi_1_us);
+        gammaCp = gammaDm*exp(-2j*phi_1_us);
+        ZC = Z_SiO2*(1 + gammaCp)/(1 - gammaCp);
+        %gammaCm = (ZC - Z_air)/(ZC + Z_air);
+        NUM_gammaCm = ZC - Z_air;
+        matrix_Z_real(index_1, index_2) = real(NUM_gammaCm);
+        matrix_Z_imag(index_1, index_2) = imag(NUM_gammaCm);
+    end
+end
+
+figure(1)
+[C, H] = contour(phi_2, phi_1, matrix_Z_real,[0 0],'r-','ShowText','on')
+set(H,'linewidth',2)
+hold on
+[C, H] = contour(phi_2, phi_1, matrix_Z_imag,[0 0],'b-','ShowText','on')
+xlabel('\phi_2')
+ylabel('\phi_1')
+legend('real','imaginary')
+hold off
+grid
+
+%% computation of the optimal thicknesses
+% values of phi_1 and phi_2 selected from the contour plot
+
+% values of phi_1 and phi_2 on the LEFT of the contour plot
+phi_sel_1 = 1.161;        % [rad]
+phi_sel_2 = 1.252;        % [rad]
+      
+%{
+% while the values of phi_1 and phi_2 on the RIGHT of the contour plot
+phi_sel_1 = 1.974;        % [rad]
+phi_sel_2 = 1.886;        % [rad]
+%}
+
+k_SiO2_0 = 2*pi*n_SiO2/lambda_0;
+k_TiO2_0 = 2*pi*n_TiO2/lambda_0;
+
+% optimal thicknesses
+L1 = phi_sel_1/k_SiO2_0;
+L2 = phi_sel_2/k_TiO2_0;
+
+% transmission line
+lambda = linspace(200e-9, 1100e-9, 1000);
+lambda_0 = 500e-9;
+
+k_SiO2_new = 2*pi*n_SiO2./lambda;
+k_TiO2_new = 2*pi*n_TiO2./lambda;
+
+gammaE = (Z_Si - Z_TiO2)/(Z_Si + Z_TiO2);
+gammaDp = gammaE*exp(-2j*k_TiO2_new*L2);
+ZD = Z_TiO2*(1 + gammaDp)./(1 - gammaDp);
+gammaDm = (ZD - Z_SiO2)./(ZD + Z_SiO2);
+gammaCp = gammaDm.*exp(-2j*k_SiO2_new*L1);
+ZC = Z_SiO2*(1 + gammaCp)./(1 - gammaCp);
+gammaCm = (ZC - Z_air)./(ZC + Z_air);
+
+% reflectivity
+R_non_QWOT_DL = (abs(gammaCm).^2);
+
+% lambda
+lambda_01 = 500;
+lambda_1 = linspace(200, 1100, 1000);
+
+% DOUBLE LAYER ARC (non-QWOT) - plots
+figure(2)
+plot(lambda_1,R_non_QWOT_DL)
+xlabel('$\lambda [nm]$','Interpreter','Latex')
+ylabel('$R$','Interpreter','Latex')
+xline(lambda_01,'r')
+legend('R non-QWOT DL','$\lambda_0 = 500 nm$','Interpreter','Latex')
+grid on 
+grid minor
